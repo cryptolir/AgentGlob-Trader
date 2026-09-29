@@ -19,12 +19,25 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
-      - run: npm install --no-audit --no-fund
+      - run: npm ci --no-audit --no-fund
       - run: npm test
       - name: The server starts and refuses to run without its settings
         run: |
           set +e
           node dist/mcp/hyperliquid/server.js </dev/null 2>err.txt
+          code=$?
+          cat err.txt
+          test "$code" = 1 && grep -q "AGENTGLOB_RUNTIME_URL" err.txt
+      # The path a user takes (README): npx straight from GitHub, which builds
+      # on their machine. Node 20/22 ship npm 10, whose peer resolution crashed
+      # here — silently — before the lockfile. Push-only: a PR merge commit is
+      # not fetchable by sha.
+      - name: Installs and starts the way users run it (npx from GitHub)
+        if: github.event_name == 'push'
+        run: |
+          set +e
+          cd "$RUNNER_TEMP"
+          npx -y "github:${{ github.repository }}#${{ github.sha }}" </dev/null 2>err.txt
           code=$?
           cat err.txt
           test "$code" = 1 && grep -q "AGENTGLOB_RUNTIME_URL" err.txt
