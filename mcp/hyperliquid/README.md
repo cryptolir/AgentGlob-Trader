@@ -26,6 +26,16 @@ AGENTGLOB_RUNTIME_TOKEN=<per-agent token>
 Both are required and validated at startup, so a missing credential fails
 immediately instead of surfacing as a confusing `401` on the first trade.
 
+## Run
+
+```bash
+npx -y github:cryptolir/AgentGlob-Trader    # or, from a clone:
+npm install && npm start
+```
+
+Client setup for Claude Code, Claude Desktop and Cursor is in the
+[main README](../../README.md#the-mcp-server-in-any-mcp-client).
+
 ## Design notes
 
 **Tools are grouped, not one-per-endpoint.** A single `hl_market_data` with a

@@ -1,0 +1,26 @@
+{
+  "name": "agentglob-trader",
+  "version": "0.1.0",
+  "description": "Hyperliquid MCP server and trading skills for AI agents — the agent never holds a key.",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/cryptolir/AgentGlob-Trader",
+  "repository": { "type": "git", "url": "git+https://github.com/cryptolir/AgentGlob-Trader.git" },
+  "type": "module",
+  "bin": { "agentglob-hyperliquid-mcp": "dist/mcp/hyperliquid/server.js" },
+  "files": ["dist", "skills", "LICENSE", "README.md"],
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "tsc",
+    "prepare": "tsc",
+    "start": "node dist/mcp/hyperliquid/server.js",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  }
+}

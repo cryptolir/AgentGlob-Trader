@@ -1,0 +1,30 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm install --no-audit --no-fund
+      - run: npm test
+      - name: The server starts and refuses to run without its settings
+        run: |
+          set +e
+          node dist/mcp/hyperliquid/server.js </dev/null 2>err.txt
+          code=$?
+          cat err.txt
+          test "$code" = 1 && grep -q "AGENTGLOB_RUNTIME_URL" err.txt

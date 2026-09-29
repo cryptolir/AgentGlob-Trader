@@ -1,5 +1,7 @@
 # AgentGlob Trader
 
+[![CI](https://github.com/cryptolir/AgentGlob-Trader/actions/workflows/ci.yml/badge.svg)](https://github.com/cryptolir/AgentGlob-Trader/actions/workflows/ci.yml)
+
 **Open-source trading tools for AI agents.** An MCP server and a set of agent
 skills that let an AI agent read markets and trade
 [Hyperliquid](https://hyperliquid.xyz) perpetual futures — without ever holding
@@ -82,24 +84,21 @@ what an agent gets wrong about trading is judgement, not syntax.
 They are plain Markdown. Read them even if you never run this code — they
 document a lot of hard-won detail about agents and this exchange.
 
-## Running it
+## Using it
 
-The MCP is a stdio server. It needs two environment variables:
+This repo has three parts, and each one travels differently:
 
-```bash
-AGENTGLOB_RUNTIME_URL=https://your-runtime
-AGENTGLOB_RUNTIME_TOKEN=<per-agent token>
-```
+| Part | Works with other agents? |
+|---|---|
+| **The skills** | **Yes, any agent.** Plain Markdown that any skill-aware runtime can load. |
+| **The MCP server** | **Yes, any MCP client** — Claude Code, Claude Desktop, Cursor, OpenClaw and others. It needs a backend to talk to. |
+| **AgentGlob's backend** | **Only for agents running on AgentGlob.** |
 
-**Be clear about what this repo is and is not.** The MCP is the thin half: it
-speaks to a runtime API that holds the keys, enforces the caps and signs. That
-runtime is part of the AgentGlob platform and is not in this repo. You can point
-the client at your own implementation of the same `/api/runtime/hyperliquid/*`
-endpoints — the contract is small and fully visible in
-[`runtime-client.ts`](mcp/hyperliquid/runtime-client.ts) — but out of the box,
-these tools expect AgentGlob behind them.
+That last line is on purpose. AgentGlob's backend only accepts calls from the
+agents it hosts. If someone copies an agent's token onto a laptop, every call
+from there is refused. So a leaked token is useless to anyone else.
 
-### The easy way — run it on AgentGlob
+### On AgentGlob (works out of the box)
 
 [AgentGlob](https://agentglob.com) gives an AI agent a persistent home: its own
 container, its own wallet, its own memory, and a dashboard where a human stays in
@@ -115,6 +114,88 @@ charge of what it may do.
 
 The agent can now trade, inside limits you set, and you can watch every order and
 change the rules at any time — including switching trading off mid-position.
+
+Every agent in a workspace can have it. Each one gets its own Trading Key and its
+own limits, so a cautious agent and an active one can sit side by side.
+
+### Skills in any agent
+
+The skills are useful even without these tools: they teach an agent how
+Hyperliquid really behaves (see [`skills/`](skills)).
+
+**Claude Code** — copy them into your skills folder:
+
+```bash
+git clone https://github.com/cryptolir/AgentGlob-Trader
+cp -r AgentGlob-Trader/skills/hyperliquid-* ~/.claude/skills/
+```
+
+**Other runtimes** — copy the three `hyperliquid-*` folders to wherever your
+runtime reads skills from. Each is a `SKILL.md` with the standard `name` and
+`description` frontmatter.
+
+One thing to adapt: when something needs a human, the skills tell the agent to
+ask its owner to use the AgentGlob dashboard (the Wallet tab, for example).
+Elsewhere, that means whoever runs your backend.
+
+### The MCP server in any MCP client
+
+The server needs Node 20 or newer, and two settings:
+
+| Setting | Value |
+|---|---|
+| `AGENTGLOB_RUNTIME_URL` | Your backend's address |
+| `AGENTGLOB_RUNTIME_TOKEN` | The token your backend expects |
+
+**Claude Code:**
+
+```bash
+claude mcp add hyperliquid \
+  -e AGENTGLOB_RUNTIME_URL=https://your-backend.example \
+  -e AGENTGLOB_RUNTIME_TOKEN=your-token \
+  -- npx -y github:cryptolir/AgentGlob-Trader
+```
+
+**Claude Desktop, Cursor and most other clients** take the same thing as JSON —
+Claude Desktop in `claude_desktop_config.json` (Settings → Developer → Edit
+Config), Cursor in `~/.cursor/mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "hyperliquid": {
+      "command": "npx",
+      "args": ["-y", "github:cryptolir/AgentGlob-Trader"],
+      "env": {
+        "AGENTGLOB_RUNTIME_URL": "https://your-backend.example",
+        "AGENTGLOB_RUNTIME_TOKEN": "your-token"
+      }
+    }
+  }
+}
+```
+
+`npx` downloads the repo, builds it and starts the server. If a setting is
+missing, it stops at once with a message saying which.
+
+**The backend is yours to write.** It is small — eight endpoints, all listed in
+[`mcp/hyperliquid/README.md`](mcp/hyperliquid/README.md#the-runtime-contract).
+It is also where every safety rule lives: the key, the limits and the signing.
+Do not move them into the MCP server — the whole point is that the agent can
+reach the server, so the server cannot be the thing that protects you.
+
+Or skip writing a backend: run the agent on AgentGlob.
+
+### From source
+
+```bash
+git clone https://github.com/cryptolir/AgentGlob-Trader
+cd AgentGlob-Trader
+npm install   # also builds, into dist/
+npm test
+```
+
+`npm start` runs the server once the two settings are set.
 
 ## The safety model, stated plainly
 
@@ -148,6 +229,9 @@ Worth saying out loud, because the skills say it to the agent too:
 Issues and pull requests welcome — especially additional venues. The shape here
 (thin typed MCP + skills that carry the judgement + server-side caps) is meant to
 be reusable for other exchanges.
+
+`npm install` builds and `npm test` runs the tests — the same checks run on
+every pull request.
 
 ## License
 

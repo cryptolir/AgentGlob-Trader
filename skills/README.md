@@ -4,10 +4,10 @@ Three skills that give an agent the *judgement* to use the Hyperliquid MCP —
 what the numbers mean, what the platform cannot do, and how to stay inside the
 limits its owner set instead of discovering each one by being refused.
 
-They are plain Markdown with YAML frontmatter, in the
-[Agent Skills](https://modelcontextprotocol.io) format used by
-[openclaw](https://github.com/cryptolir/openclaw) and AgentGlob. Any agent
-runtime that loads a `SKILL.md` by its `description` can use them.
+They are plain Markdown: a `SKILL.md` with the standard `name` and
+`description` frontmatter, the format used by Claude Code,
+[OpenClaw](https://github.com/cryptolir/openclaw) and AgentGlob. Any agent
+runtime that picks a skill by its `description` can use them.
 
 | Skill | Read it for |
 |---|---|
@@ -42,10 +42,22 @@ acting on a wrong mental model. These encode the corrections:
 
 **On AgentGlob:** add them from the skill catalog on the agent's Tools tab.
 
-**Elsewhere:** copy the directory into wherever your runtime reads skills from.
-The frontmatter declares the two environment variables the MCP needs, so a
-runtime that checks requirements can tell you what is missing before the agent
-tries to trade.
+**Claude Code:**
+
+```bash
+cp -r skills/hyperliquid-* ~/.claude/skills/
+```
+
+(or `.claude/skills/` inside one project, to keep them to that project).
+
+**Anywhere else:** copy the three `hyperliquid-*` folders to wherever your
+runtime reads skills from. The frontmatter declares the two settings the MCP
+needs, so a runtime that checks requirements can say what is missing before the
+agent tries to trade.
+
+**Outside AgentGlob, one thing to adapt:** when something needs a human, these
+skills tell the agent to ask its owner to use the AgentGlob dashboard (the
+Wallet tab, for example). Elsewhere, read that as whoever runs your backend.
 
 ## A note on tone
 
