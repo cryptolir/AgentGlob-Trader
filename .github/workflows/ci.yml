@@ -28,16 +28,18 @@ jobs:
           code=$?
           cat err.txt
           test "$code" = 1 && grep -q "AGENTGLOB_RUNTIME_URL" err.txt
-      # The path a user takes (README): npx straight from GitHub, which builds
-      # on their machine. Node 20/22 ship npm 10, whose peer resolution crashed
-      # here — silently — before the lockfile. Push-only: a PR merge commit is
-      # not fetchable by sha.
+      # The exact command in the README: npx straight from GitHub, which builds
+      # on the user's machine. Node 20/22 ship npm 10, whose peer resolution
+      # crashed here — silently — before the lockfile. Deliberately NOT pinned
+      # to a commit: npm 10 has a second bug with full-sha specs ("GitFetcher
+      # requires an Arborist constructor"), and the README does not pin either.
+      # Push-only, so it tests main as users get it.
       - name: Installs and starts the way users run it (npx from GitHub)
         if: github.event_name == 'push'
         run: |
           set +e
           cd "$RUNNER_TEMP"
-          npx -y "github:${{ github.repository }}#${{ github.sha }}" </dev/null 2>err.txt
+          npx -y "github:${{ github.repository }}" </dev/null 2>err.txt
           code=$?
           cat err.txt
           test "$code" = 1 && grep -q "AGENTGLOB_RUNTIME_URL" err.txt
