@@ -40,7 +40,7 @@ Practical consequences:
 
 | | |
 |---|---|
-| [`mcp/hyperliquid/`](mcp/hyperliquid) | The MCP server — 8 typed tools for market data, account reads, orders, leverage and funding |
+| [`mcp/hyperliquid/`](mcp/hyperliquid) | The MCP server — 9 typed tools for market data, account reads, orders, leverage, funding and stablecoin conversion |
 | [`skills/`](skills) | Three agent skills: how to read the market, how to trade, and how to size a trade so it stays inside its limits |
 
 ### The tools
@@ -54,6 +54,7 @@ Practical consequences:
 | `hl_set_leverage` | Per-asset leverage, cross or isolated |
 | `hl_transfer` | Move USDC from spot to perp so it can back a trade |
 | `hl_transfer_status` | Reconcile an in-flight transfer against the exchange ledger |
+| `hl_swap` | Convert USDH, USDT0 or USDE into USDC — never below $0.99 |
 | `hl_account_status` | Trading readiness: key present, approval valid, expiry |
 
 Account reads are always **this agent's own account**. There is no parameter for
@@ -123,6 +124,11 @@ change the rules at any time — including switching trading off mid-position.
 - **An empty allowlist allows nothing.** Absence is never permission.
 - **Funding moves one direction only** — spot to perp. Perp back to spot is not
   restricted, it is not built: there is no code that constructs it.
+- **The one spot action is narrow by construction.** `hl_swap` converts three
+  hand-picked stablecoins into USDC and nothing else — it cannot buy a coin
+  whose price moves. Its limit price *is* its floor, so it never sells below
+  $0.99; a coin that has lost its $1 value simply does not sell. It reuses the
+  ordinary order action, so it adds nothing new that a key could sign.
 - **Mainnet only, small sizes.** No paper mode. The safety comes from the caps
   and from position sizes a person chose, not from a sandbox.
 

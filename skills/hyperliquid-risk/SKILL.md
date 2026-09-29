@@ -78,6 +78,10 @@ The practical consequences:
   could ever have filled. Decide the price once.
 - **Get the order right the first time.** Read the book before you send, not
   after you are refused.
+- **A stablecoin swap counts too.** `hl_swap` draws from the same daily total
+  as your orders. Unlike an order, only the part that actually sold is
+  charged, and a swap that sells nothing costs nothing. Convert before you
+  trade, not after you have spent the day on orders.
 - **Leave room to close.** A reduce-only order is still an order and still
   costs. An agent that spends its whole allowance opening positions **cannot
   close them**, and is stuck holding risk until the counter resets.

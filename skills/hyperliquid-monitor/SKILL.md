@@ -74,6 +74,8 @@ Symbols are bare, like `BTC` and `ETH`, not `BTC-USD` or `BTCUSDT`.
 | `userFees` | Your fee tier. |
 
 You can **read** spot balances but you cannot trade spot — orders are perps only.
+The one exception: if spot holds USDH, USDT0 or USDE, `hl_swap` (in
+`hyperliquid-trading`) converts it into USDC so it can back a trade.
 
 ### Reading the numbers
 

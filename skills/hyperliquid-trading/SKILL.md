@@ -1,6 +1,6 @@
 ---
 name: hyperliquid-trading
-description: "Place and cancel orders on Hyperliquid perpetual futures through the agent's own delegated trading key, and fund the perp account by moving USDC from spot to perp. Limit orders in either direction, reduce-only closes, time-in-force choice, cancelling resting orders by id, and spot-to-perp funding transfers when perp margin is short. Every order and transfer is bounded by owner-set caps the agent cannot change. Use when placing, closing or cancelling a trade, or when asked to fund, top up or add margin to the perp account. NOT for reading prices or positions (use hyperliquid-monitor), NOT for withdrawals or sending funds to any address (impossible by design), and NOT for spot, stop-loss or bracket orders, which this cannot do."
+description: "Place and cancel orders on Hyperliquid perpetual futures through the agent's own delegated trading key, fund the perp account by moving USDC from spot to perp, and convert a stablecoin (USDH, USDT0, USDE) into USDC. Limit orders in either direction, reduce-only closes, time-in-force choice, cancelling resting orders by id, and spot-to-perp funding transfers when perp margin is short. Every order and transfer is bounded by owner-set caps the agent cannot change. Use when placing, closing or cancelling a trade, or when asked to fund, top up or add margin to the perp account, or to convert, swap or turn USDH, USDT0 or USDE into USDC. NOT for reading prices or positions (use hyperliquid-monitor), NOT for withdrawals or sending funds to any address (impossible by design), and NOT for spot trading (buying or selling any coin that moves), stop-loss or bracket orders, which this cannot do."
 homepage: https://hyperliquid.gitbook.io/hyperliquid-docs
 metadata:
   {
@@ -42,8 +42,10 @@ They are not preferences. They are what this integration can and cannot do.
    hundredth of a bitcoin. If someone says "buy $200 of BTC", you divide by the
    price yourself. Confusing the two is how an order comes out a thousand times
    too big.
-3. **Perpetual futures only.** You cannot place a spot order. Spot symbols are
-   not on the allowlist and do not resolve, so the attempt is refused.
+3. **Perpetual futures only.** You cannot trade spot. Spot symbols are not on
+   the allowlist and do not resolve, so the attempt is refused. The one spot
+   action is `hl_swap`, which only converts USDH, USDT0 or USDE into USDC —
+   see below.
 4. **There is no stop-loss and no take-profit.** You cannot leave a protective
    order resting. Nothing will close a losing position while you are not looking.
    If a position needs a stop, the honest answer is that you cannot set one.
@@ -184,6 +186,50 @@ only your owner can clear, from the agent's Wallet tab.
 | `exchange_refused` | The exchange rejected the whole request. | Report it verbatim. Nothing moved. |
 | `uncertain` / `upstream` (502) | The exchange did not answer, or is unreachable. | **Never retry blindly.** You cannot tell whether it landed. Call `hl_transfer_status`. |
 | `double_land` / `ledger_anomaly` | The ledger disagrees with what was expected. | Stop and report it. Your owner needs to look. |
+
+## Converting a stablecoin to USDC (`hl_swap`)
+
+Perp margin is USDC. If the account holds a different dollar coin instead —
+USDH, USDT0 or USDE — that money cannot back a trade until it is converted.
+`hl_swap` does that one thing, and nothing else.
+
+```
+hl_swap   { from: "USDH", amount: 123.27 }
+```
+
+- **Three coins in, USDC out. That is all.** Only USDH, USDT0 and USDE can be
+  swapped, and only into USDC. USDC cannot be swapped into anything. This is not
+  spot trading: you cannot use it to buy a coin whose price moves.
+- **Never below $0.99.** The swap sells only to buyers paying at least 0.99
+  USDC per coin. If the coin trades lower — it has lost its $1 value, or the
+  market is thin — nothing sells. That is the protection working. Report it; do
+  not look for another way.
+- **At least 11 coins.** Hyperliquid refuses orders worth under $10, and it
+  counts the value at the 0.99 floor — so 10 coins would be $9.90 and fail.
+- **It can fill partly.** Report `soldSz` (how much sold) and `usdcReceived`
+  (what came back), not what you asked for. `partial: true` means some is left
+  over — read the balance before trying again, do not just resend.
+- **It counts against the daily total**, like an order. But only what actually
+  sold is charged, and a swap that sells nothing costs nothing.
+- **Several swaps under the per-order limit are fine** when the balance is
+  bigger than one order may be — they all still count against today's total.
+  Tell the person that is what you are doing.
+- **It is not a transfer, a deposit or a bridge.** The coins stay on the spot
+  side of your own account; only their kind changes. After a swap, the USDC is
+  still on the spot side.
+
+### When a swap is refused
+
+| Code | Meaning | What to do |
+|---|---|---|
+| `swap_not_allowed` | Not USDH, USDT0 or USDE. | Say which coins can be swapped. There is no other swap. |
+| `bad_amount` | Not a number, or under 11. | Send at least 11. |
+| `unknown_field` | The request sent more than `from` and `amount` — a target, a price, a side. | Send exactly those two. The target is always USDC and the floor is fixed. |
+| `cap_not_accepted` | The request tried to send its own limits. | Never send cap fields. |
+| `swap_not_filled` | Nothing sold: no buyer at 0.99 or better, or not enough of the coin. | Report the reason as given. The budget was not charged. Do not retry in a loop. |
+| `pair_mismatch` | The exchange market no longer looks the way this system expects. | Stop and report it. Nothing was sent; a human needs to look. |
+| `order_cap_exceeded` | The swap is bigger than one order may be. | Swap no more than the per-order limit at a time. |
+| `daily_cap_exceeded` | The swap would pass today's total. | Stop for the day. Say how much is left to convert. |
 
 ## When something is refused
 

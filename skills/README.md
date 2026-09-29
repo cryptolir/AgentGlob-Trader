@@ -12,7 +12,7 @@ runtime that loads a `SKILL.md` by its `description` can use them.
 | Skill | Read it for |
 |---|---|
 | [`hyperliquid-monitor`](hyperliquid-monitor/SKILL.md) | Reading the market and the account. Read-only — places nothing, moves nothing. |
-| [`hyperliquid-trading`](hyperliquid-trading/SKILL.md) | Placing, closing and cancelling orders, and funding the perp account. |
+| [`hyperliquid-trading`](hyperliquid-trading/SKILL.md) | Placing, closing and cancelling orders, funding the perp account, and converting a stablecoin into USDC. |
 | [`hyperliquid-risk`](hyperliquid-risk/SKILL.md) | Sizing, leverage, and what actually counts against a daily cap. |
 
 ## Why these are worth reading on their own

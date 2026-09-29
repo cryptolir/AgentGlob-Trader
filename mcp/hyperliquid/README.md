@@ -1,7 +1,7 @@
 # Hyperliquid MCP server
 
 A stdio [MCP](https://modelcontextprotocol.io) server exposing Hyperliquid
-market data, account reads and bounded trading as eight typed tools.
+market data, account reads and bounded trading as nine typed tools.
 
 It **holds no credential and never contacts `api.hyperliquid.xyz`**. Every call
 goes to an authenticated runtime API that owns the trading key, enforces the
@@ -12,9 +12,9 @@ owner's caps and does the signing.
 | File | |
 |---|---|
 | `server.ts` | The MCP server: tool listing, dispatch, and error mapping |
-| `tools.ts` | The eight tool definitions — schemas and handlers |
+| `tools.ts` | The nine tool definitions — schemas and handlers |
 | `runtime-client.ts` | Thin HTTP client for the runtime API. The whole contract is here |
-| `tools.test.ts` | Tests for the direction guard on `hl_transfer` |
+| `tools.test.ts` | Tests: the direction guard on `hl_transfer`, and that `hl_swap` sends nothing but `{from, amount}` |
 
 ## Environment
 
@@ -52,6 +52,12 @@ direction would turn a "move it back to spot" request into another deposit
 *into* perp: the opposite fund movement, silently. It refuses instead of
 rewriting. `tools.test.ts` pins this.
 
+**`hl_swap` passes exactly `{from, amount}` and adds nothing.** Everything that
+keeps the swap narrow — the three-coin allowlist, the fixed USDC target, the
+sell side and the 0.99 floor — belongs to the runtime, where the model cannot
+reach it. The test proves invented arguments (a target, a price, a side) never
+leave this process.
+
 ## The runtime contract
 
 If you want to run these tools against your own backend, implement these
@@ -64,6 +70,7 @@ endpoints. `runtime-client.ts` is the complete specification.
 | POST | `/api/runtime/hyperliquid/cancel` | `{ coin, oid }` |
 | POST | `/api/runtime/hyperliquid/leverage` | `{ coin, leverage, isCross? }` |
 | POST | `/api/runtime/hyperliquid/transfer` | `{ amount, direction: "spot_to_perp" }` |
+| POST | `/api/runtime/hyperliquid/swap` | `{ from: "USDH" \| "USDT0" \| "USDE", amount }` — into USDC, IOC, floor 0.99 |
 | GET | `/api/runtime/hyperliquid/transfer` | — reconcile an in-flight transfer |
 | GET | `/api/runtime/hyperliquid/status` | — trading readiness |
 
