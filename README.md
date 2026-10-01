@@ -224,6 +224,11 @@ Worth saying out loud, because the skills say it to the agent too:
 - **Nothing here is financial advice**, and the skills instruct the agent to
   refuse to give any.
 
+
+## Integration plans
+
+- [QuantConnect integration](docs/quantconnect-integration-plan.md) — use QuantConnect for strategy research, backtesting and optimization while keeping Hyperliquid execution behind AgentGlob's existing runtime controls.
+
 ## Contributing
 
 Issues and pull requests welcome — especially additional venues. The shape here
