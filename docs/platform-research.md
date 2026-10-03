@@ -52,3 +52,47 @@ QuantConnect's crypto prices come from big exchanges such as Binance and Coinbas
 - [QuantConnect docs: plan quotas (nodes, notifications)](https://www.quantconnect.com/docs/v2/cloud-platform/organizations/resources)
 - [Third-party LEAN add-on with Hyperliquid](https://github.com/ypsik/LeanSharedFuturesBrokerage)
 - [QuantConnect pricing review 2026](https://newyorkcityservers.com/blog/quantconnect-review)
+
+## Binance (official MCP)
+
+*Checked October 2026. Binance launched its official MCP as part of "Agent OS" on August 20, 2026.*
+
+### What Binance offers
+
+- **One online address, nothing to install:** `https://agent.binance.com/mcp/agentic`.
+- **Prices for free:** prices, order books, charts and funding rates need no login.
+- **Trading:** spot, margin, Convert (swap one coin for another) and futures, where the account and country allow it.
+- **No API keys:** the owner signs in with their Binance account in a browser and approves what the agent may do.
+- **A separate agent account:** the agent trades only inside its own sub-account, which the owner funds by hand. It can never withdraw, and it cannot pull money from the main account.
+- **One-click cut-off:** "Disconnect agents" on Binance cuts the agent off.
+
+### Best fit: through AgentGlob, the same way as Hyperliquid
+
+```
+trading agent ──► AgentGlob (owner's limits, the Binance login) ──► Binance MCP ──► agent sub-account
+```
+
+1. In the dashboard, the owner clicks "Connect Binance" and approves on Binance's page. AgentGlob keeps the login; the agent never sees it.
+2. The owner moves money into the agent's sub-account.
+3. The agent asks AgentGlob to trade. AgentGlob checks the owner's limits first (size, daily total, allowed coins, leverage), then passes the order to Binance.
+4. Two off switches: "Disconnect" in AgentGlob, and "Disconnect agents" on Binance.
+
+**Why this shape:** two layers of safety. Binance caps the risk at what is in the sub-account, and AgentGlob caps each trade and each day. The trading skills in this repo (monitor, trading, risk) mostly carry over.
+
+### Simpler, but weaker: the agent connects straight to Binance
+
+Almost nothing to build. The catch: the login sits inside the agent, and AgentGlob's limits and dashboard are skipped, so Binance's sub-account is the only safety net. Fine for a quick test with a small amount.
+
+### Things to check first
+
+- **The login step is the big unknown.** Binance's docs describe the sign-in done in a desktop browser with the AI app open. It needs testing whether a server (AgentGlob) can complete that sign-in and keep it working. If not, only the simpler path works.
+- **How long the login lasts** before it needs renewing is not documented.
+- **Where Binance is available:** Binance.com is not open in some countries, and futures depend on the account.
+- **Binance holds the money.** With Hyperliquid the funds sit in the owner's own wallet; with Binance the exchange holds them.
+
+### Sources
+
+- [Binance docs: Binance MCP Server](https://developers.binance.com/en/docs/agent-native/mcp-server/agentic)
+- [Binance docs: MCP Server intro](https://developers.binance.com/en/docs/agent-native/mcp-server)
+- [crypto.news: Binance launches Agent OS and MCP trading server](https://crypto.news/binance-launches-agent-os-and-mcp-trading-server/)
+- [PR Newswire: Binance introduces Agent OS](https://www.prnewswire.com/apac/news-releases/binance-introduces-agent-os-to-connect-ai-applications-to-financial-infrastructure-302856314.html)
