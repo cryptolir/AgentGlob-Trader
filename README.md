@@ -228,6 +228,7 @@ Worth saying out loud, because the skills say it to the agent too:
 ## Integration plans
 
 - [QuantConnect integration](docs/quantconnect-integration-plan.md) — use QuantConnect for strategy research, backtesting and optimization while keeping Hyperliquid execution behind AgentGlob's existing runtime controls.
+- [Platform research](docs/platform-research.md) — short, plain-English summaries of outside platforms (starting with QuantConnect) and how they could work with an AgentGlob trading agent.
 
 ## Contributing
 
