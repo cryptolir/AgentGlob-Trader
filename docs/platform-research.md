@@ -96,3 +96,36 @@ Almost nothing to build. The catch: the login sits inside the agent, and AgentGl
 - [Binance docs: MCP Server intro](https://developers.binance.com/en/docs/agent-native/mcp-server)
 - [crypto.news: Binance launches Agent OS and MCP trading server](https://crypto.news/binance-launches-agent-os-and-mcp-trading-server/)
 - [PR Newswire: Binance introduces Agent OS](https://www.prnewswire.com/apac/news-releases/binance-introduces-agent-os-to-connect-ai-applications-to-financial-infrastructure-302856314.html)
+
+## LEAN (open-source engine)
+
+*Checked October 2026. LEAN is the free, open-source trading engine underneath QuantConnect. The QuantConnect website is a hosted service built on it; LEAN is the same engine, run on your own servers.*
+
+### What it is
+
+- A program that runs trading strategies written in Python or C#.
+- **Backtesting:** it tests a strategy on past prices.
+- **Live trading:** it runs the strategy for real, or with fake money.
+- Free and open (Apache 2.0, the same license as this repo), widely used (about 22k GitHub stars), and actively maintained.
+
+### How to run it
+
+- **The easy way:** the `lean` command-line tool runs everything in Docker. It needs a **paid QuantConnect plan**, and some of its data costs extra.
+- **The hard way:** build the engine from source (.NET 10). No account needed, but you bring your own price data and do more setup.
+
+**Crypto exchanges it trades on:** Binance, Bybit, Kraken, Coinbase, Bitfinex and dYdX. **Not Hyperliquid.** A one-person add-on adds Hyperliquid and 7 more exchanges, but it has no outside users and the author says it is built for their own use.
+
+### How it could fit an AgentGlob trading agent
+
+1. **Backtesting on our own server (best fit).** Run LEAN on AgentGlob's servers. The agent hands it a strategy, gets the test results, and shows them to the owner before suggesting trades. No money or keys are involved, and there are no per-signal limits like the QuantConnect website's. Cost: server time plus price data.
+2. **LEAN decides, the agent trades.** LEAN runs the strategy live in paper mode and sends signals to AgentGlob, the same as the QuantConnect plan above but on our own servers. The owner's limits and dashboard still apply.
+3. **LEAN trades directly (not recommended).** It would need the one-person Hyperliquid add-on, and exchange keys would go into LEAN. That skips the owner's limits and the dashboard.
+
+**Compared with the QuantConnect website:** LEAN costs nothing per month and has no signal cap, but you run the servers and find the data yourself.
+
+### Sources
+
+- [LEAN on GitHub](https://github.com/QuantConnect/Lean)
+- [LEAN CLI: getting started](https://www.lean.io/docs/v2/lean-cli/key-concepts/getting-started)
+- [LEAN CLI: supported brokerages](https://www.lean.io/docs/v2/lean-cli/live-trading/brokerages)
+- [Third-party LEAN add-on with Hyperliquid](https://github.com/ypsik/LeanSharedFuturesBrokerage)
