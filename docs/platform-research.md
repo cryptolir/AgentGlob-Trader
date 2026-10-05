@@ -129,3 +129,32 @@ Almost nothing to build. The catch: the login sits inside the agent, and AgentGl
 - [LEAN CLI: getting started](https://www.lean.io/docs/v2/lean-cli/key-concepts/getting-started)
 - [LEAN CLI: supported brokerages](https://www.lean.io/docs/v2/lean-cli/live-trading/brokerages)
 - [Third-party LEAN add-on with Hyperliquid](https://github.com/ypsik/LeanSharedFuturesBrokerage)
+
+## Hummingbot
+
+*Checked October 2026.*
+
+### What it is
+
+- Free and open source (Apache 2.0), widely used: 111k+ running bots and 318 exchange connections.
+- **Hyperliquid is fully supported** (spot and perps), and Hyperliquid sponsors the project.
+- It has its own MCP, an API server, and an AI layer called "Condor".
+- **Its strength is fast, many-orders-a-minute trading:** market making (placing buy and sell orders on both sides to earn the gap), arbitrage between exchanges, and similar.
+
+### Fit for an AgentGlob trading agent: not now
+
+1. **It does the same job as this repo's tool.** The agent already places Hyperliquid orders through AgentGlob. Hummingbot would be a second, parallel way to do it.
+2. **It needs its own Hyperliquid key, which skips the owner's limits.** Its key can trade but not withdraw, like the AgentGlob Trading Key, but the dashboard limits (size, daily total, allowed coins, leverage) would not apply to its orders.
+3. **Its strength is not what slow strategies need.** Strategies that make a few trades a month gain nothing from a high-speed engine.
+4. **It is weak at backtesting and finding strategies.** QuantConnect, Freqtrade or Jesse are better for that.
+
+### When it would make sense
+
+If the agent should later earn from **market making** on Hyperliquid (steady, small income from placing orders on both sides). That is a different, more advanced business, and Hummingbot is the standard tool for it. It would then run next to the agent with its own small, separate wallet, so a mistake cannot touch the main funds.
+
+### Sources
+
+- [Hummingbot](https://hummingbot.org/)
+- [Hummingbot: Hyperliquid connector](https://hummingbot.org/exchanges/hyperliquid/)
+- [Hummingbot v2.12.0 release notes](https://hummingbot.org/release-notes/2.12.0/)
+- [Chainstack: top trading bots on Hyperliquid 2026](https://chainstack.com/hyperliquid-trading-bots-2026/)
